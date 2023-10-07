@@ -1,11 +1,14 @@
 # BlackJack
 
-Tools for the anaylysis of BlackJack, written primarily in CoffeeScript.
+Tools for the analysis of BlackJack, written primarily in CoffeeScript.
 
 ## Executables
 
-### generateCardFrequencyData
-Dealing down a 6-deck shoe to a single deck was simulated 600,000,000 times. Decks were grouped by count from -52 to +52, and then for each count, the average quantity of each card (1-13) in a deck is computed.
+### generate_card_frequency_data.coffee
+Dealing the first deck from a 6-deck shoe was simulated 600,000,000 times. Decks were grouped by count from -52 to +52, and then for each count, the average quantity of each card (1-13) in a deck is computed.
+
+### compute_dealer_blackjack_probabilities.coffee
+Computes the probability of a dealer blackjack if an ace is showing for each count.
 
 ## Generated data
 
