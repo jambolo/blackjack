@@ -131,3 +131,4 @@ dist
 
 # coffeescript
 src/
+coffeelint.json
