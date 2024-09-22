@@ -1,18 +1,36 @@
 fs = require 'fs'
+{
+  DECK_SIZE
+  COUNT_RANGE_PER_DECK
+  ACE
+  JACK
+  QUEEN
+  KING
+  LOW_CARDS
+  UNCOUNTED_CARDS
+  HIGH_CARDS
+  DEFAULT_CONFIGURATION
+  shuffle
+  newUnshuffledDeck
+  newUnshuffledShoe
+  newDeck
+  newShoe
+  countOf
+} = require './common'
 
-COUNT_RANGE = 52
-DECK_SIZE = 52
-ACE = 1
-JACK = 11
-QUEEN = 12
-KING = 13
+NUMBER_OF_DECKS_PER_SHOE: DEFAULT_CONFIGURATION.NUMBER_OF_DECKS_PER_SHOE
+NUMBER_OF_SHOES: DEFAULT_CONFIGURATION.NUMBER_OF_SHOES
+NUMBER_OF_DECKS = 1
+COUNT_RANGE = COUNT_RANGE_PER_DECK * NUMBER_OF_DECKS
+
+countIndex = (c) -> c + COUNT_RANGE
 
 # Load the frequency data
 cardFrequenciesByCount = JSON.parse(fs.readFileSync('data/cardFrequenciesByCount.json'))
 
 # Compute probabilities of Ace and 10-King for each count
 probabilities = []
-for count in [-20..20]
+for count in [-COUNT_RANGE..COUNT_RANGE]
   f = cardFrequenciesByCount[count + COUNT_RANGE]
   prob = {}
   prob['Count'] = count
