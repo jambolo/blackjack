@@ -1,3 +1,9 @@
+# compute_true_count_shoe_distribution.coffee
+#
+# Computes the distribution of true counts in a shoe as each card in the shoe is dealt to the deck penetration limit.
+# The results are written to `data/trueCountDistribution.json`. A summary is written to the console.
+
+fs = require 'fs'
 {
   DECK_SIZE
   COUNT_RANGE_PER_DECK
@@ -18,7 +24,7 @@
 } = require './common'
 
 DECKS_PER_SHOE = DEFAULT_CONFIGURATION.NUMBER_OF_DECKS_PER_SHOE
-NUMBER_OF_SHOES = 10000000 #DEFAULT_CONFIGURATION.NUMBER_OF_SHOES
+NUMBER_OF_SHOES = 100000000
 PENETRATION = DEFAULT_CONFIGURATION.PENETRATION
 COUNT_RANGE = COUNT_RANGE_PER_DECK * DECKS_PER_SHOE  # The -/+ range of possible counts
 CARDS_PLAYED_PER_SHOE = Math.floor((DECKS_PER_SHOE - PENETRATION) * DECK_SIZE)
@@ -50,11 +56,14 @@ for i in [0 ... NUMBER_OF_SHOES]
 # Compute the probability of each count.
 trueCountDistribution = countFrequencies.map (f) -> f / (CARDS_PLAYED_PER_SHOE * NUMBER_OF_SHOES)
 
-# Find the first non-zero count.
-firstNonZeroCount = trueCountDistribution.findIndex (p) -> p > 0
+# Output the results.
+fs.writeFileSync  'data/trueCountDistribution.json', JSON.stringify(trueCountDistribution)
 
-# Find the last non-zero count.
-lastNonZeroCount = trueCountDistribution.length - 1 - trueCountDistribution.slice().reverse().findIndex (p) -> p > 0
+# Output a summary
+countDistibutionTable = []
+for c in [-20 .. 20]
+  countDistibutionTable.push
+    count: c
+    '%': parseFloat((trueCountDistribution[countIndex(c)] * 100).toFixed(2))
 
-console.log JSON.stringify([firstNonZeroCount - COUNT_RANGE .. lastNonZeroCount - COUNT_RANGE])
-console.log JSON.stringify(trueCountDistribution[firstNonZeroCount .. lastNonZeroCount])
+console.table(countDistibutionTable)

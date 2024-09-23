@@ -1,3 +1,7 @@
+# compute_dealer_blackjack_probabilities.coffee
+#
+# Computes the probability of a dealer blackjack when an ace is showing for each count.
+
 fs = require 'fs'
 {
   DECK_SIZE
@@ -18,25 +22,22 @@ fs = require 'fs'
   countOf
 } = require './common'
 
-NUMBER_OF_DECKS_PER_SHOE: DEFAULT_CONFIGURATION.NUMBER_OF_DECKS_PER_SHOE
-NUMBER_OF_SHOES: DEFAULT_CONFIGURATION.NUMBER_OF_SHOES
-NUMBER_OF_DECKS = 1
-COUNT_RANGE = COUNT_RANGE_PER_DECK * NUMBER_OF_DECKS
+# Load the density data
+cardDensitiesByCount = JSON.parse(fs.readFileSync('data/cardDensitiesByCount.json'))
+
+COUNT_RANGE = (cardDensitiesByCount.length - 1) / 2
 
 countIndex = (c) -> c + COUNT_RANGE
 
-# Load the frequency data
-cardFrequenciesByCount = JSON.parse(fs.readFileSync('data/cardFrequenciesByCount.json'))
+# Compute table of Ace and 10-King for each count
+table = []
+for count in [-20..20]
+  densities = cardDensitiesByCount[countIndex(count)]
+  entry =
+    'Count': count
+    '%': parseFloat(((densities[10] + densities[JACK] + densities[QUEEN] + densities[KING]) * 100).toFixed(1))
 
-# Compute probabilities of Ace and 10-King for each count
-probabilities = []
-for count in [-COUNT_RANGE..COUNT_RANGE]
-  f = cardFrequenciesByCount[count + COUNT_RANGE]
-  prob = {}
-  prob['Count'] = count
-  prob['Ace (%)'] = parseFloat((f[ACE] / DECK_SIZE * 100).toFixed(1))
-  prob['Ten (%)'] = parseFloat(((f[10] + f[JACK] + f[QUEEN] + f[KING]) / DECK_SIZE * 100).toFixed(1))
-  probabilities.push prob
+  table.push entry
 
 # Display table
-console.table(probabilities)
+console.table(table)

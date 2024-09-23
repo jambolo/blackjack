@@ -1,5 +1,9 @@
-fs = require 'fs'
+# cs\generate_count_probability_data.coffee
+#
+# Noting the count after dealing half of a 6-deck shoe is simulated 100,000,000 times and the probability of
+# each possible count is written to the file `data/countProbabilities.json`. A summary is written to the console.
 
+fs = require 'fs'
 {
   DECK_SIZE
   COUNT_RANGE_PER_DECK
@@ -20,17 +24,18 @@ fs = require 'fs'
 } = require './common'
 
 DECKS_PER_SHOE = DEFAULT_CONFIGURATION.NUMBER_OF_DECKS_PER_SHOE
-NUMBER_OF_SHOES = DEFAULT_CONFIGURATION.NUMBER_OF_SHOES
-COUNT_RANGE = COUNT_RANGE_PER_DECK * DECKS_PER_SHOE  # The -/+ range of possible counts
+CARDS_PER_SHOE = DECK_SIZE * DECKS_PER_SHOE
+NUMBER_OF_SHOES = 100000000
+COUNT_RANGE = COUNT_RANGE_PER_DECK * DECKS_PER_SHOE  # The maximum -/+ range of possible counts
+DEALT_CARDS = Math.round(CARDS_PER_SHOE / 2) # Half the shoe is dealt
+REMAINING_DECKS = (CARDS_PER_SHOE - DEALT_CARDS) / DECK_SIZE # The number of decks remaining (for true count)
 
 countIndex = (c) -> c + COUNT_RANGE
 
 # For a huge number of rounds:
 #   1. Shuffle the shoe.
-#   2. Compute the count after dealing all but the last deck.
+#   2. Compute the true count after dealing half of the shoe.
 #
-# Note some cleverness: Because the count for a whole deck is 0, the count for any portion of a shoe is just the
-# negative of the count for the rest of the shoe.
 
 countFrequencies = (0 for [-COUNT_RANGE .. COUNT_RANGE])
 shoe = newUnshuffledShoe(DECKS_PER_SHOE)
@@ -41,23 +46,23 @@ for i in [0 ... NUMBER_OF_SHOES]
   # Shuffle
   shuffle shoe
 
-  # Accumulate the count for all but the last deck (as if the first deck is the remaining deck).
-  count = -countOf(shoe, 0, DECK_SIZE)
-  countFrequencies[countIndex(count)] += 1
+  # Accumulate the true count at the middle of the shoe.
+  trueCount = Math.round(countOf(shoe, 0, DEALT_CARDS) / REMAINING_DECKS)
+  countFrequencies[countIndex(trueCount)] += 1
 
 # Compute the probability of each count.
 countProbabilities = countFrequencies.map (f) -> f / NUMBER_OF_SHOES
 
 # Output the results.
-fs.writeFileSync 'data/countProbabilities.json', JSON.stringify(countProbabilities)
+fs.writeFileSync  'data/countProbabilities.json', JSON.stringify(countProbabilities)
 
 # Summarize count frequencies
 
 countFrequenciesTable = []
-for c in [-COUNT_RANGE .. COUNT_RANGE] when countFrequencies[c + COUNT_RANGE] > 0
+for c in [-20 .. 20] when countFrequencies[countIndex(c)] > 0
   countFrequenciesTable.push
     count: c
-    N: countFrequencies[c + COUNT_RANGE]
-    '%': parseFloat((countProbabilities[c + COUNT_RANGE] * 100).toFixed(2))
+    N: countFrequencies[countIndex(c)]
+    '%': parseFloat((countProbabilities[countIndex(c)] * 100).toFixed(2))
 
 console.table(countFrequenciesTable)
