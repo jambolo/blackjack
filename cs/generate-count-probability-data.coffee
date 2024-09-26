@@ -23,10 +23,10 @@ fs = require 'fs'
   countOf
 } = require './common'
 
-DECKS_PER_SHOE = DEFAULT_CONFIGURATION.NUMBER_OF_DECKS_PER_SHOE
+DECKS_PER_SHOE = DEFAULT_CONFIGURATION.DECKS_PER_SHOE
 CARDS_PER_SHOE = DECK_SIZE * DECKS_PER_SHOE
 NUMBER_OF_SHOES = 100000000
-COUNT_RANGE = COUNT_RANGE_PER_DECK * DECKS_PER_SHOE  # The maximum -/+ range of possible counts
+COUNT_RANGE = COUNT_RANGE_PER_DECK * DECKS_PER_SHOE + 1  # The maximum -/+ range of possible counts
 DEALT_CARDS = Math.round(CARDS_PER_SHOE / 2) # Half the shoe is dealt
 REMAINING_DECKS = (CARDS_PER_SHOE - DEALT_CARDS) / DECK_SIZE # The number of decks remaining (for true count)
 

@@ -24,9 +24,9 @@ fs = require 'fs'
 } = require './common'
 
 NUMBER_OF_SHOES = 10000000
-DECKS_PER_SHOE = DEFAULT_CONFIGURATION.NUMBER_OF_DECKS_PER_SHOE
+DECKS_PER_SHOE = DEFAULT_CONFIGURATION.DECKS_PER_SHOE
 PENETRATION = DEFAULT_CONFIGURATION.PENETRATION
-COUNT_RANGE = COUNT_RANGE_PER_DECK * DECKS_PER_SHOE  # The -/+ range of possible running counts
+COUNT_RANGE = COUNT_RANGE_PER_DECK * DECKS_PER_SHOE + 1  # The -/+ range of possible running counts
 NUMBER_OF_CARDS_DEALT = Math.floor((DECKS_PER_SHOE - PENETRATION) * DECK_SIZE)
 
 # Accumulates the frequency of each card in the given range of the shoe.
