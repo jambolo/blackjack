@@ -36,10 +36,10 @@ fs = require 'fs'
   valueOf
 } = require './common'
 
-NUMBER_OF_SHOES = 1000000
+NUMBER_OF_SHOES = 10000000
 DECKS_PER_SHOE = DEFAULT_CONFIGURATION.DECKS_PER_SHOE
 PENETRATION = DEFAULT_CONFIGURATION.PENETRATION
-COUNT_RANGE = COUNT_RANGE_PER_DECK * DECKS_PER_SHOE  # The -/+ range of possible running counts
+CARDS_TO_DEAL_PER_SHOE = (DECKS_PER_SHOE - PENETRATION) * DECK_SIZE
 
 PAYOUTS =
   'Kings of Spades + BJ': 1000
@@ -47,7 +47,7 @@ PAYOUTS =
   'Suited Kings': 30
   'Suited Q/J/10': 20
   'Suited 20': 9
-  'Kings': 6
+  'Unsuited Kings': 6
   'Unsuited 20': 4
   'Other': -1
 
@@ -62,6 +62,9 @@ cardDensitiesByCount = JSON.parse(fs.readFileSync('data/cardDensitiesByCount.jso
 COUNT_RANGE = (cardDensitiesByCount.length - 1) / 2
 
 countIndex = (c) -> c + COUNT_RANGE
+
+TEN_COUNT_RANGE = 4 * NUMBER_OF_SUITS * DECKS_PER_SHOE
+KING_COUNT_RANGE = NUMBER_OF_SUITS * DECKS_PER_SHOE
 
 # Probability of a dealer blackjack by count.
 dealerBlackjackProbabilitiesByCount = []
@@ -80,23 +83,53 @@ frequenciesByCount = (
     'Suited Kings': 0
     'Suited Q/J/10': 0
     'Suited 20': 0
-    'Kings': 0
+    'Unsuited Kings': 0
     'Unsuited 20': 0
     'Other': 0
   } for [-COUNT_RANGE .. COUNT_RANGE]
 )
 
+# Outcome frequencies by 10 count.
+frequenciesByTenCount =
+  {
+    'Kings of Spades + BJ': 0
+    'Kings of Spades': 0
+    'Suited Kings': 0
+    'Suited Q/J/10': 0
+    'Suited 20': 0
+    'Unsuited Kings': 0
+    'Unsuited 20': 0
+    'Other': 0
+  } for [0 .. TEN_COUNT_RANGE]
+
+# Outcome frequencies by king count.
+frequenciesByKingCount =
+  {
+    'Kings of Spades + BJ': 0
+    'Kings of Spades': 0
+    'Suited Kings': 0
+    'Suited Q/J/10': 0
+    'Suited 20': 0
+    'Unsuited Kings': 0
+    'Unsuited 20': 0
+    'Other': 0
+  } for [0 .. KING_COUNT_RANGE]
+
+# Total outcome frequencies.
 frequencies =
     'Kings of Spades + BJ': 0
     'Kings of Spades': 0
     'Suited Kings': 0
     'Suited Q/J/10': 0
     'Suited 20': 0
-    'Kings': 0
+    'Unsuited Kings': 0
     'Unsuited 20': 0
     'Other': 0
 
 countFrequencies = (0 for [-COUNT_RANGE .. COUNT_RANGE])
+tenCountFrequencies = (0 for [0 .. TEN_COUNT_RANGE])
+kingCountFrequencies = (0 for [0 .. KING_COUNT_RANGE])
+
 numberOfHands = 0 # Total number of hands dealt.
 
 console.log "Simulating #{NUMBER_OF_SHOES} shoes..."
@@ -111,23 +144,37 @@ for i in [0 ... NUMBER_OF_SHOES]
 
   # Deal hands until the penetration limit is reached, accumulating the outcomes by count
   runningCount = 0
+  runningTenCount = TEN_COUNT_RANGE
+  runningKingCount = KING_COUNT_RANGE
   c = 0
-  while c <= (DECKS_PER_SHOE - PENETRATION) * DECK_SIZE
+  while c <= CARDS_TO_DEAL_PER_SHOE
     # Get the true count for the next hand.
     trueCount = Math.round(runningCount / ((shoe.length - c) / DECK_SIZE))
     i = countIndex(trueCount)
     countFrequencies[i]++
+
+    # Get the true 10 count for the next hand.
+    trueTenCount = Math.round(runningTenCount / ((shoe.length - c) / DECK_SIZE))
+    tenCountFrequencies[trueTenCount]++
+
+    # Get the true king count for the next hand.
+    trueKingCount = Math.round(runningKingCount / ((shoe.length - c) / DECK_SIZE))
+    kingCountFrequencies[trueKingCount]++
 
     # Deal the next hand.
     bottom = shoe[c++]
     bottomSuit = bottom % NUMBER_OF_SUITS
     bottomRank = Math.floor(bottom / NUMBER_OF_SUITS) + 1
     runningCount += countValueOf(bottomRank)
+    runningTenCount-- if bottomRank >= 10
+    runningKingCount-- if bottomRank == KING
 
     top = shoe[c++]
     topSuit = top % NUMBER_OF_SUITS
     topRank = Math.floor(top / NUMBER_OF_SUITS) + 1
     runningCount += countValueOf(topRank)
+    runningTenCount-- if topRank >= 10
+    runningKingCount-- if topRank == KING
 
     numberOfHands++
 
@@ -148,9 +195,9 @@ for i in [0 ... NUMBER_OF_SHOES]
             outcome = 'Suited Q/J/10'
         else # Suited but the same rank (includes ACE and 9)
           outcome = 'Suited 20'
-      else #Unsuited
+      else # Unsuited
         if bottomRank == KING and topRank == KING # Unsuited Kings
-          outcome = 'Kings'
+          outcome = 'Unsuited Kings'
         else # Unsuited but 20
           outcome = 'Unsuited 20'
     else # Loser
@@ -158,6 +205,8 @@ for i in [0 ... NUMBER_OF_SHOES]
 
     frequencies[outcome]++
     frequenciesByCount[i][outcome]++
+    frequenciesByTenCount[trueTenCount][outcome]++
+    frequenciesByKingCount[trueKingCount][outcome]++
 
 console.log "Number of hands: #{numberOfHands}"
 
@@ -193,3 +242,31 @@ for count in [-20 .. 20]
     frequenciesByCountTable.push entry
 
 console.table frequenciesByCountTable
+
+frequenciesByTenCountTable = []
+for count in [0 .. TEN_COUNT_RANGE]
+  if tenCountFrequencies[count] > 0
+    entry = { '10 Count': count }
+    totalPayout = 0
+    totalOccurrence = 0
+    for hand, n of frequenciesByTenCount[count]
+      entry[hand] = parseFloat((n / tenCountFrequencies[count] * 100).toFixed(4))
+      totalPayout += PAYOUTS[hand] * n
+    entry['Total Payout'] = parseFloat((totalPayout / tenCountFrequencies[count]).toFixed(4))
+    frequenciesByTenCountTable.push entry
+
+console.table frequenciesByTenCountTable
+
+frequenciesByKingCountTable = []
+for count in [0 .. KING_COUNT_RANGE]
+  if kingCountFrequencies[count] > 0
+    entry = { 'King Count': count }
+    totalPayout = 0
+    totalOccurrence = 0
+    for hand, n of frequenciesByKingCount[count]
+      entry[hand] = parseFloat((n / kingCountFrequencies[count] * 100).toFixed(4))
+      totalPayout += PAYOUTS[hand] * n
+    entry['Total Payout'] = parseFloat((totalPayout / kingCountFrequencies[count]).toFixed(4))
+    frequenciesByKingCountTable.push entry
+
+console.table frequenciesByKingCountTable
