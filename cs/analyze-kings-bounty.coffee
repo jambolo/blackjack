@@ -36,7 +36,7 @@ fs = require 'fs'
   valueOf
 } = require './common'
 
-NUMBER_OF_SHOES = 10000000
+NUMBER_OF_SHOES = 1000#0000
 DECKS_PER_SHOE = DEFAULT_CONFIGURATION.DECKS_PER_SHOE
 PENETRATION = DEFAULT_CONFIGURATION.PENETRATION
 CARDS_TO_DEAL_PER_SHOE = (DECKS_PER_SHOE - PENETRATION) * DECK_SIZE
@@ -130,7 +130,21 @@ countFrequencies = (0 for [-COUNT_RANGE .. COUNT_RANGE])
 tenCountFrequencies = (0 for [0 .. TEN_COUNT_RANGE])
 kingCountFrequencies = (0 for [0 .. KING_COUNT_RANGE])
 
+# Total returns per hand played for all combinations of counts
+# FYI: referenced as returns[trueCount][trueTenCount][trueKingCount]
+returns = ((([0, 0] for [0 .. KING_COUNT_RANGE]) for [0 .. TEN_COUNT_RANGE]) for [-COUNT_RANGE .. COUNT_RANGE])
+
 numberOfHands = 0 # Total number of hands dealt.
+
+# Accumulate returns for a hand.
+accumulateHandPayout = (outcome, count, tenCount, kingCount) ->
+  if true#count >= 6 and tenCount >= 18 and kingCount >= 6
+    for cc in [-COUNT_RANGE .. count]
+      ii = countIndex(cc)
+      for tt in [0 .. tenCount]
+        for kk in [0 .. kingCount]
+          returns[ii][tt][kk][0] += PAYOUTS[outcome]
+          returns[ii][tt][kk][1]++
 
 console.log "Simulating #{NUMBER_OF_SHOES} shoes..."
 
@@ -208,6 +222,9 @@ for i in [0 ... NUMBER_OF_SHOES]
     frequenciesByTenCount[trueTenCount][outcome]++
     frequenciesByKingCount[trueKingCount][outcome]++
 
+    # Accumulate returns
+    accumulateHandPayout outcome, trueCount, trueTenCount, trueKingCount
+
 console.log "Number of hands: #{numberOfHands}"
 
 totalPayout = 0
@@ -217,56 +234,133 @@ for hand, n of frequencies
   payout = PAYOUTS[hand] * n
   frequenciesTable.push
     'Hand': hand
-    'Occurrence %': parseFloat((n / numberOfHands * 100).toFixed(4))
-    'Payout': parseFloat((payout / numberOfHands * 100).toFixed(4))
+    'Frequency (%)': parseFloat((n / numberOfHands * 100).toFixed(4))
+    'Payout': parseFloat((payout / numberOfHands).toFixed(4))
   totalPayout += payout
   totalOccurrence += n
 frequenciesTable.push
   'Hand': 'Total'
-  'Occurrence %': parseFloat((totalOccurrence / numberOfHands * 100).toFixed(4))
+  'Frequency (%)': parseFloat((totalOccurrence / numberOfHands * 100).toFixed(4))
   'Payout': parseFloat((totalPayout / numberOfHands).toFixed(4))
 
 console.table frequenciesTable
 
-frequenciesByCountTable = []
-for count in [-20 .. 20]
-  i = countIndex(count)
-  if countFrequencies[i] > 0
-    entry = { 'Count': count }
-    totalPayout = 0
-    totalOccurrence = 0
-    for hand, n of frequenciesByCount[i]
-      entry[hand] = parseFloat((n / countFrequencies[i] * 100).toFixed(4))
-      totalPayout += PAYOUTS[hand] * n
-    entry['Total Payout'] = parseFloat((totalPayout / countFrequencies[i]).toFixed(4))
-    frequenciesByCountTable.push entry
+## Find the boundaries of the return table in which the return is not negative.
+#minCount = do ->
+#  for c in [-COUNT_RANGE .. COUNT_RANGE]
+#    i = countIndex(c)
+#    for t in [0 .. TEN_COUNT_RANGE]
+#      for k in [0 .. KING_COUNT_RANGE]
+#        if returns[i][t][k][0] > 0
+#          return c
+#  return COUNT_RANGE
+#maxCount = do ->
+#  for c in [COUNT_RANGE .. -COUNT_RANGE]
+#    i = countIndex(c)
+#    for t in [0 .. TEN_COUNT_RANGE]
+#      for k in [0 .. KING_COUNT_RANGE]
+#        if returns[i][t][k][0] > 0
+#          return c
+#  return -COUNT_RANGE
+#minTenCount = do ->
+#  for t in [0 .. TEN_COUNT_RANGE]
+#    for c in [-COUNT_RANGE .. COUNT_RANGE]
+#      i = countIndex(c)
+#      for k in [0 .. KING_COUNT_RANGE]
+#        if returns[i][t][k][0] > 0
+#          return t
+#  return TEN_COUNT_RANGE
+#maxTenCount = do ->
+#  for t in [TEN_COUNT_RANGE .. 0]
+#    for c in [-COUNT_RANGE .. COUNT_RANGE]
+#      i = countIndex(c)
+#      for k in [0 .. KING_COUNT_RANGE]
+#        if returns[i][t][k][0] > 0
+#          return t
+#  return 0
+#minKingCount = do ->
+#  for k in [0 .. KING_COUNT_RANGE]
+#    for c in [-COUNT_RANGE .. COUNT_RANGE]
+#      i = countIndex(c)
+#      for t in [0 .. TEN_COUNT_RANGE]
+#        if returns[i][t][k][0] > 0
+#          return k
+#  return KING_COUNT_RANGE
+#maxKingCount = do ->
+#  for k in [KING_COUNT_RANGE .. 0]
+#    for c in [-COUNT_RANGE .. COUNT_RANGE]
+#      i = countIndex(c)
+#      for t in [0 .. TEN_COUNT_RANGE]
+#        if returns[i][t][k][0] > 0
+#          return k
+#  return 0
+#
+#console.log("🚀 ~ minCount:", minCount)
+#console.log("🚀 ~ maxCount:", maxCount)
+#console.log("🚀 ~ minTenCount:", minTenCount)
+#console.log("🚀 ~ maxTenCount:", maxTenCount)
+#console.log("🚀 ~ minKingCount:", minKingCount)
+#console.log("🚀 ~ maxKingCount:", maxKingCount)
+#
+## Find the location of the maximum return.
+#best = -Infinity
+#bestCount = 0
+#bestTenCount = 0
+#bestKingCount = 0
+#for c in [-COUNT_RANGE .. COUNT_RANGE]
+#  i = countIndex(c)
+#  for t in [0 .. TEN_COUNT_RANGE]
+#    for k in [0 .. maxKingCount]
+#      if returns[i][t][k][0] > best
+#        best = returns[i][t][k][0]
+#        bestCount = c
+#        bestTenCount = t
+#        bestKingCount = k
+#
+#console.log "Maximum return:"
+#console.log "  when count >= #{bestCount}, 10-count >= #{bestTenCount}, king-count >= #{bestKingCount}"
+#console.log "    overall: #{best / numberOfHands}"
+#console.log "    per bet : #{best / returns[countIndex(bestCount)][bestTenCount][bestKingCount][1]}"
 
-console.table frequenciesByCountTable
-
-frequenciesByTenCountTable = []
-for count in [0 .. TEN_COUNT_RANGE]
-  if tenCountFrequencies[count] > 0
-    entry = { '10 Count': count }
-    totalPayout = 0
-    totalOccurrence = 0
-    for hand, n of frequenciesByTenCount[count]
-      entry[hand] = parseFloat((n / tenCountFrequencies[count] * 100).toFixed(4))
-      totalPayout += PAYOUTS[hand] * n
-    entry['Total Payout'] = parseFloat((totalPayout / tenCountFrequencies[count]).toFixed(4))
-    frequenciesByTenCountTable.push entry
-
-console.table frequenciesByTenCountTable
-
-frequenciesByKingCountTable = []
-for count in [0 .. KING_COUNT_RANGE]
-  if kingCountFrequencies[count] > 0
-    entry = { 'King Count': count }
-    totalPayout = 0
-    totalOccurrence = 0
-    for hand, n of frequenciesByKingCount[count]
-      entry[hand] = parseFloat((n / kingCountFrequencies[count] * 100).toFixed(4))
-      totalPayout += PAYOUTS[hand] * n
-    entry['Total Payout'] = parseFloat((totalPayout / kingCountFrequencies[count]).toFixed(4))
-    frequenciesByKingCountTable.push entry
-
-console.table frequenciesByKingCountTable
+#frequenciesByCountTable = []
+#for count in [-20 .. 20]
+#  i = countIndex(count)
+#  if countFrequencies[i] > 0
+#    entry = { 'Count': count }
+#    totalPayout = 0
+#    totalOccurrence = 0
+#    for hand, n of frequenciesByCount[i]
+#      entry[hand] = parseFloat((n / countFrequencies[i] * 100).toFixed(4))
+#      totalPayout += PAYOUTS[hand] * n
+#    entry['Total Payout'] = parseFloat((totalPayout / countFrequencies[i]).toFixed(4))
+#    frequenciesByCountTable.push entry
+#
+#console.table frequenciesByCountTable
+#
+#frequenciesByTenCountTable = []
+#for count in [0 .. TEN_COUNT_RANGE]
+#  if tenCountFrequencies[count] > 0
+#    entry = { '10 Count': count }
+#    totalPayout = 0
+#    totalOccurrence = 0
+#    for hand, n of frequenciesByTenCount[count]
+#      entry[hand] = parseFloat((n / tenCountFrequencies[count] * 100).toFixed(4))
+#      totalPayout += PAYOUTS[hand] * n
+#    entry['Total Payout'] = parseFloat((totalPayout / tenCountFrequencies[count]).toFixed(4))
+#    frequenciesByTenCountTable.push entry
+#
+#console.table frequenciesByTenCountTable
+#
+#frequenciesByKingCountTable = []
+#for count in [0 .. KING_COUNT_RANGE]
+#  if kingCountFrequencies[count] > 0
+#    entry = { 'King Count': count }
+#    totalPayout = 0
+#    totalOccurrence = 0
+#    for hand, n of frequenciesByKingCount[count]
+#      entry[hand] = parseFloat((n / kingCountFrequencies[count] * 100).toFixed(4))
+#      totalPayout += PAYOUTS[hand] * n
+#    entry['Total Payout'] = parseFloat((totalPayout / kingCountFrequencies[count]).toFixed(4))
+#    frequenciesByKingCountTable.push entry
+#
+#console.table frequenciesByKingCountTable
