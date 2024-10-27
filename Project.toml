@@ -1,0 +1,21 @@
+name = "Blackjack"
+uuid = "cec0b593-c494-441a-b515-9f9243e863ff"
+authors = ["John Bolton <jambolo@users.noreply.github.com> and contributors"]
+version = "0.1.0"
+
+[deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
+[compat]
+DataFrames = "1.7.0"
+Plots = "1.40.8"
+Random = "1.11.0"
+julia = "1.6.7"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
