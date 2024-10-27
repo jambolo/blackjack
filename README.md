@@ -2,6 +2,8 @@
 
 Tools for the analysis of BlackJack, written primarily in CoffeeScript.
 
+**The implementation in Coffeescript has been deprecated. Development has moved to Julia.**
+
 ## Executables
 
 ### generate-card-frequency-data.coffee
