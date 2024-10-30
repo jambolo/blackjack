@@ -7,19 +7,12 @@ outcome is between 17 and 21.
 """
 )
 
-using JSON
-#using Plots
-#gr() # Use the GR backend for plotting
-using DataFrames
-
 using Blackjack
+using JSON
+using DataFrames
 
 const NUMBER_OF_SHOES = 100_000_000
 configuration = Blackjack.DEFAULT_CONFIGURATION
-
-const PROBABILITY_OF_NUMBER = 4.0 / 52.0
-const PROBABILITY_OF_ACE = 4.0 / 52.0
-const PROBABILITY_OF_FACE = 12.0 / 52.0
 
 const HIGHEST_POSSIBLE_SCORE = BUST
 const LOWEST_TWO_CARD_SCORE = 2

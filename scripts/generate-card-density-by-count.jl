@@ -7,12 +7,10 @@ limit. Results are written to the file `data/cardDensitiesByCount.json`. A summa
 """
 )
 
+using Blackjack
 using JSON
-#using Plots
-#gr() # Use the GR backend for plotting
 using DataFrames
 
-using Blackjack
 
 const NUMBER_OF_SHOES = 10_000_000
 configuration = Blackjack.DEFAULT_CONFIGURATION
