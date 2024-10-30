@@ -22,6 +22,7 @@ const NUMBER_OF_COUNT_VALUES = 2 * COUNT_RANGE + 1
 const NUMBER_OF_CARDS_DEALT = floor((configuration.DECKS_PER_SHOE - configuration.PENETRATION) * DECK_SIZE)
 
 # Print the rules that are in use.
+println("Rules in use:")
 println(Blackjack.Rules.deconstruct(configuration.RULES))
 
 # Sums the densities of low, high, and uncounted cards.
@@ -46,10 +47,11 @@ card_densities_by_count = zeros(Float64, NUMBER_OF_COUNT_VALUES, NUMBER_OF_CARDS
 # Number of occurrences for each count.
 count_frequencies = zeros(Int64, NUMBER_OF_COUNT_VALUES)
 
+# The shoe
 shoe = Blackjack.Shoes.Shoe(configuration.DECKS_PER_SHOE, configuration.PENETRATION)
 
+println("Simulating $NUMBER_OF_SHOES shoes...")
 for s in 1:NUMBER_OF_SHOES
-    # Shuffle
     Blackjack.Shoes.shuffle!(shoe)
 
     # For each card, the number remaining in the shoe.
@@ -73,6 +75,7 @@ for s in 1:NUMBER_OF_SHOES
         cards_remaining = Blackjack.Shoes.remaining(shoe)
         card_densities_by_count[i, :] .+= remaining_cards ./ cards_remaining
     end
+
     if s % (NUMBER_OF_SHOES ÷ 10) == 0
         println("$(round(s / NUMBER_OF_SHOES * 100))% of $NUMBER_OF_SHOES shoes.")
     end
