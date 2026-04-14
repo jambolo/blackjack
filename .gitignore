@@ -4,3 +4,9 @@
 /Manifest.toml
 docs/build/
 docs/site/
+
+# VS Code
+.vscode/
+
+# Claude
+.claude/

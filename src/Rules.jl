@@ -42,14 +42,14 @@ end
 """
 function deconstruct(rules::RuleSet)
     return """
-    Dealer must hit soft 17: $(rules.DEALER_MUST_HIT_SOFT_17)
-    Dealer checks for blackjack when 10 is showing: $(rules.DEALER_CHECKS_FOR_BLACKJACK)
-    Doubling after split is allowed: $(rules.DOUBLE_AFTER_SPLIT_ALLOWED)
-    Resplitting aces is allowed: $(rules.RESPLIT_ACES_ALLOWED)
-    Hitting split aces is allowed: $(rules.HIT_SPLIT_ACES_ALLOWED)
-    Surrender is allowed: $(rules.SURRENDER_ALLOWED)
-    Maximum number of split hands: $(rules.MAX_SPLIT_HANDS)
-    Blackjack payoff: $(rules.BLACKJACK_PAYOFF)
+    - Dealer must hit soft 17: $(rules.DEALER_MUST_HIT_SOFT_17)
+    - Dealer checks for blackjack when 10 is showing: $(rules.DEALER_CHECKS_FOR_BLACKJACK)
+    - Doubling after split is allowed: $(rules.DOUBLE_AFTER_SPLIT_ALLOWED)
+    - Resplitting aces is allowed: $(rules.RESPLIT_ACES_ALLOWED)
+    - Hitting split aces is allowed: $(rules.HIT_SPLIT_ACES_ALLOWED)
+    - Surrender is allowed: $(rules.SURRENDER_ALLOWED)
+    - Maximum number of split hands: $(rules.MAX_SPLIT_HANDS)
+    - Blackjack payoff: $(rules.BLACKJACK_PAYOFF)
     """
 end
 
@@ -105,7 +105,7 @@ function dealer_must_hit(hand, rules::RuleSet)
     soft, v = value(hand)
     if v < 17
         must = true
-    else 
+    else
         must = soft && v == 17 && rules.DEALER_MUST_HIT_SOFT_17
     end
     return must

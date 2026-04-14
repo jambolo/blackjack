@@ -1,6 +1,6 @@
-using blackjack
+using Blackjack
 using Test
 
-@testset "blackjack.jl" begin
+@testset "Blackjack.jl" begin
     # Write your tests here.
 end

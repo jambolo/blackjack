@@ -5,70 +5,93 @@ Tools for the analysis of BlackJack, written in Julia.
 ## Executables
 
 ### generate-card-density-by-count.jl
+
 Dealing each card from a 6-deck shoe up to the penetration limit is simulated 10,000,000 times. For each count, the
 average density of each card (1-13) in the remaining shoe is computed. Results are written to the file
-`data/cardDensitiesByCount.json`. A summary is written to the console.
+`data/card-densities-by-count.json`. A summary is written to the console.
 
 ### generate-next-card-outcome-distribution.jl
+
 Computes the probabilities of each outcome for each possible hand after taking one card. Hands with a score of 6 through 10 treat and Ace as 11, while the rest treat it as a 1. Specific card combinations are not considered. The shoe is assumed to have an infinite number of decks.
 
+### generate-dealer-outcome-distribution.jl
+
+Simulates many shoes and records the dealer's final score for each possible up-card. Dealer blackjacks are excluded when `DEALER_CHECKS_FOR_BLACKJACK` is enabled. Results are written to the file `data/dealer-outcome-distribution.json`. A summary is written to the console as percentages by up-card (Ace through 10) and outcome (17–21, Bust).
+
+### generate-count-probability-data.jl
+
+Simulates many shoes and records the true count at the midpoint of each shoe (after dealing half the cards). The resulting probability distribution is written to `data/count-probabilities.json`. A summary table of counts with non-zero frequency is printed to the console.
+
+### generate-true-count-distribution.jl
+
+Simulates many shoes and records the true count after every card dealt up to the penetration limit. The distribution is normalized by the total number of cards dealt and written to `data/true-count-distribution.json`. A summary table for counts −20 to +20 is printed to the console.
+
+### generate-dealer-blackjack-probabilities.jl
+
+Computes the probability of a dealer blackjack for each count without simulation, by summing the 10-value card densities from `data/card-densities-by-count.json`. Results are written to `data/dealer-blackjack-probabilities-by-count.json` and summarized to the console.
+
 ## Summaries
+
 Summaries of analysis results.
 
-### Average distribution of low (2-6), uncounted(7-9), and high cards (A,10-K) for each count
-After dealing 4.5 decks from a 6-deck shoe for 10,000,000 shoes.
+### Average distribution of low (2-6), neutral(7-9), and high cards (A,10-K) for each count
 
-| Count | Low % | Uncounted % | High % |
-|-------|-------|-------------|--------|
-| -20   | 58.8  |    20.6     |  20.6  |
-| -19   | 57.4  |    21.5     |  21.1  |
-| -18   | 56.3  |    21.8     |  21.9  |
-| -17   | 55.2  |    22.1     |  22.7  |
-| -16   | 54.2  |    22.2     |  23.6  |
-| -15   | 53.2  |    22.3     |  24.5  |
-| -14   | 52.2  |    22.4     |  25.4  |
-| -13   | 51.1  |    22.6     |  26.3  |
-| -12   | 50.1  |    22.7     |  27.2  |
-| -11   | 49.1  |    22.8     |  28.1  |
-| -10   | 48.1  |    22.8     |  29.0  |
-| -9    | 47.2  |    22.9     |  30.0  |
-| -8    | 46.2  |    23.0     |  30.9  |
-| -7    | 45.2  |    23.0     |  31.8  |
-| -6    | 44.2  |    23.0     |  32.7  |
-| -5    | 43.2  |    23.1     |  33.7  |
-| -4    | 42.3  |    23.1     |  34.7  |
-| -3    | 41.3  |    23.1     |  35.6  |
-| -2    | 40.3  |    23.1     |  36.6  |
-| -1    | 39.4  |    23.1     |  37.6  |
-| 0     | 38.5  |    23.1     |  38.5  |
-| 1     | 37.6  |    23.1     |  39.4  |
-| 2     | 36.6  |    23.1     |  40.3  |
-| 3     | 35.6  |    23.1     |  41.3  |
-| 4     | 34.7  |    23.1     |  42.3  |
-| 5     | 33.7  |    23.1     |  43.2  |
-| 6     | 32.8  |    23.0     |  44.2  |
-| 7     | 31.8  |    23.0     |  45.2  |
-| 8     | 30.9  |    23.0     |  46.2  |
-| 9     | 30.0  |    22.9     |  47.2  |
-| 10    | 29.0  |    22.8     |  48.1  |
-| 11    | 28.1  |    22.8     |  49.1  |
-| 12    | 27.2  |    22.7     |  50.1  |
-| 13    | 26.3  |    22.6     |  51.1  |
-| 14    | 25.3  |    22.5     |  52.2  |
-| 15    | 24.5  |    22.3     |  53.2  |
-| 16    | 23.6  |    22.2     |  54.3  |
-| 17    | 22.7  |    22.1     |  55.2  |
-| 18    | 21.7  |    22.2     |  56.1  |
-| 19    | 21.0  |    21.7     |  57.3  |
-| 20    | 20.2  |    21.5     |  58.3  |
-  
+After dealing 4.5 decks from a 6-deck shoe for 1,000,000 shoes.
+
+| Count | Low (%) | Neutral (%) | High (%) |
+|------:|--------:|------------:|---------:|
+|   -20 |    58.9 |        20.3 |     20.8 |
+|   -19 |    57.5 |        21.4 |     21.1 |
+|   -18 |    56.7 |        21.0 |     22.3 |
+|   -17 |    55.3 |        21.8 |     22.8 |
+|   -16 |    54.3 |        22.1 |     23.6 |
+|   -15 |    53.2 |        22.3 |     24.5 |
+|   -14 |    52.3 |        22.3 |     25.5 |
+|   -13 |    51.2 |        22.5 |     26.3 |
+|   -12 |    50.2 |        22.6 |     27.2 |
+|   -11 |    49.2 |        22.7 |     28.1 |
+|   -10 |    48.2 |        22.8 |     29.1 |
+|    -9 |    47.1 |        22.9 |     29.9 |
+|    -8 |    46.2 |        23.0 |     30.9 |
+|    -7 |    45.2 |        23.0 |     31.8 |
+|    -6 |    44.2 |        23.0 |     32.8 |
+|    -5 |    43.2 |        23.1 |     33.7 |
+|    -4 |    42.3 |        23.1 |     34.7 |
+|    -3 |    41.3 |        23.1 |     35.6 |
+|    -2 |    40.3 |        23.1 |     36.6 |
+|    -1 |    39.4 |        23.1 |     37.6 |
+|     0 |    38.5 |        23.1 |     38.5 |
+|     1 |    37.6 |        23.1 |     39.4 |
+|     2 |    36.6 |        23.1 |     40.3 |
+|     3 |    35.6 |        23.1 |     41.3 |
+|     4 |    34.7 |        23.1 |     42.3 |
+|     5 |    33.7 |        23.1 |     43.2 |
+|     6 |    32.8 |        23.0 |     44.2 |
+|     7 |    31.8 |        23.0 |     45.2 |
+|     8 |    30.9 |        23.0 |     46.2 |
+|     9 |    30.0 |        22.9 |     47.2 |
+|    10 |    29.0 |        22.8 |     48.1 |
+|    11 |    28.1 |        22.8 |     49.1 |
+|    12 |    27.2 |        22.7 |     50.1 |
+|    13 |    26.3 |        22.6 |     51.1 |
+|    14 |    25.4 |        22.5 |     52.2 |
+|    15 |    24.5 |        22.3 |     53.2 |
+|    16 |    23.8 |        21.7 |     54.5 |
+|    17 |    22.8 |        21.7 |     55.4 |
+|    18 |    21.8 |        21.9 |     56.2 |
+|    19 |    21.0 |        21.7 |     57.3 |
+|    20 |    20.3 |        21.1 |     58.5 |
+
 Generated by `generate-card-density-by-count.jl`
 
 ### Outcome distribution after dealing 1 card
+
 For each possible starting hand, the probability (%) of each outcome after being dealt 1 card.
 
+After dealing 4.5 decks from a 6-deck shoe for 10,000,000 shoes.
+
 | Hand |   3  |   4  |   5  |   6  |   7  |   8  |   9  |   10 |   11 |   12 |   13 |   14 |   15 |   16 |   17 |   18 |   19 |   20 |   21 | BUST |
-|------|------|------|------|------|------|------|------|------|------|------|------|------|------|------|------|------|------|------|------|----- |
+|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|-----:|----- |
 |   2  |  7.1 |  7.7 |  7.7 |  7.7 |  7.7 |  7.7 |  7.7 |  7.7 |  7.7 | 31.0 |      |      |      |      |      |      |      |      |      |      |
 |   3  |      |  7.4 |  7.4 |  7.7 |  7.7 |  7.7 |  7.7 |  7.7 |  7.7 |  7.7 | 31.0 |      |      |      |      |      |      |      |      |      |
 |   4  |      |      |  7.5 |  7.5 |  7.5 |  7.7 |  7.7 |  7.7 |  7.7 |  7.7 |  7.7 | 31.0 |      |      |      |      |      |      |      |      |
@@ -89,8 +112,10 @@ For each possible starting hand, the probability (%) of each outcome after being
 |  19  |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |  7.7 |  7.7 | 84.5 |
 |  20  |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |  7.7 | 92.3 |
 
-| Hand |  3-16 | 17-21 |  BUST |    
-|------|-------|-------|-------|
+Aggregated results:
+
+| Hand |  3-16 | 17-21 |  BUST |
+|-----:|------:|------:|------:|
 |   2  | 100.0 |       |       |
 |   3  | 100.0 |       |       |
 |   4  | 100.0 |       |       |
@@ -112,3 +137,163 @@ For each possible starting hand, the probability (%) of each outcome after being
 |  20  |       |   7.7 |  92.3 |
 
 Generated by `generate-next-card-outcome-distribution.jl`
+
+### True count after dealing half of a 6-deck shoe
+
+After 100,000,000 shoes.
+
+| Count |     N    |   %   |
+|------:|---------:|------:|
+|   -15 |        2 |  0.00 |
+|   -14 |        6 |  0.00 |
+|   -13 |       44 |  0.00 |
+|   -12 |      351 |  0.00 |
+|   -11 |     1848 |  0.00 |
+|   -10 |     8998 |  0.01 |
+|    -9 |    37121 |  0.04 |
+|    -8 |   133019 |  0.13 |
+|    -7 |   406446 |  0.41 |
+|    -6 |  1070757 |  1.07 |
+|    -5 |  2418460 |  2.42 |
+|    -4 |  4709018 |  4.71 |
+|    -3 |  7897217 |  7.90 |
+|    -2 | 11413401 | 11.41 |
+|    -1 | 14244758 | 14.24 |
+|     0 | 15321739 | 15.32 |
+|     1 | 14233283 | 14.23 |
+|     2 | 11417283 | 11.42 |
+|     3 |  7896805 |  7.90 |
+|     4 |  4705493 |  4.71 |
+|     5 |  2421133 |  2.42 |
+|     6 |  1071798 |  1.07 |
+|     7 |   408961 |  0.41 |
+|     8 |   133265 |  0.13 |
+|     9 |    37464 |  0.04 |
+|    10 |     9066 |  0.01 |
+|    11 |     1892 |  0.00 |
+|    12 |      316 |  0.00 |
+|    13 |       49 |  0.00 |
+|    14 |        7 |  0.00 |
+
+Generated by `generate-count-probability-data.jl`
+
+### Probability of dealer outcome
+
+After dealing 4.5 decks from a 6-deck shoe for 10,000,000 shoes.
+
+| Showing | 17 (%) | 18 (%) | 19 (%) | 20 (%) | 21 (%) | Bust (%) |
+|--------:|-------:|-------:|-------:|-------:|-------:|---------:|
+|     Ace |    8.3 |   20.7 |   20.7 |   20.7 |    9.5 |     20.1 |
+|       2 |   13.0 |   13.6 |   13.2 |   12.6 |   12.0 |     35.7 |
+|       3 |   12.6 |   13.2 |   12.7 |   12.2 |   11.6 |     37.7 |
+|       4 |   12.3 |   12.6 |   12.3 |   11.8 |   11.3 |     39.8 |
+|       5 |   11.8 |   12.3 |   11.8 |   11.3 |   10.9 |     41.9 |
+|       6 |   11.5 |   11.5 |   11.5 |   11.0 |   10.6 |     43.9 |
+|       7 |   36.9 |   13.8 |    7.9 |    7.9 |    7.4 |     26.2 |
+|       8 |   12.9 |   36.0 |   12.9 |    6.9 |    7.0 |     24.4 |
+|       9 |   12.0 |   11.7 |   35.2 |   12.0 |    6.1 |     22.9 |
+|      10 |   12.1 |   12.1 |   12.1 |   36.8 |    3.8 |     23.0 |
+
+Generated by `generate-dealer-outcome-distribution.jl`
+
+### Distribution of true counts in a shoe
+
+The distribution of true counts in a shoe as each card is dealt to the deck penetration limit.
+
+After dealing 4.5 decks from a 6-deck shoe for 10,000,000 shoes.
+
+| Count |   %   |
+|------:|------:|
+|   -20 |  0.00 |
+|   -19 |  0.00 |
+|   -18 |  0.00 |
+|   -17 |  0.00 |
+|   -16 |  0.00 |
+|   -15 |  0.00 |
+|   -14 |  0.00 |
+|   -13 |  0.01 |
+|   -12 |  0.02 |
+|   -11 |  0.04 |
+|   -10 |  0.07 |
+|    -9 |  0.14 |
+|    -8 |  0.28 |
+|    -7 |  0.49 |
+|    -6 |  0.94 |
+|    -5 |  1.62 |
+|    -4 |  2.90 |
+|    -3 |  5.07 |
+|    -2 |  9.07 |
+|    -1 | 16.77 |
+|     0 | 25.16 |
+|     1 | 16.76 |
+|     2 |  9.07 |
+|     3 |  5.07 |
+|     4 |  2.90 |
+|     5 |  1.62 |
+|     6 |  0.94 |
+|     7 |  0.49 |
+|     8 |  0.28 |
+|     9 |  0.14 |
+|    10 |  0.07 |
+|    11 |  0.04 |
+|    12 |  0.02 |
+|    13 |  0.01 |
+|    14 |  0.00 |
+|    15 |  0.00 |
+|    16 |  0.00 |
+|    17 |  0.00 |
+|    18 |  0.00 |
+|    19 |  0.00 |
+|    20 |  0.00 |
+
+Generated by `generate-true-count-distribution.jl`
+
+### Probability of a dealer blackjack for each count
+
+Probability of a dealer blackjack if an Ace is showing.
+
+| Count |   %   |
+|------:|------:|
+|   -20 |  14.9 |
+|   -19 |  15.2 |
+|   -18 |  17.5 |
+|   -17 |  18.3 |
+|   -16 |  18.8 |
+|   -15 |  19.5 |
+|   -14 |  20.3 |
+|   -13 |  20.9 |
+|   -12 |  21.7 |
+|   -11 |  22.5 |
+|   -10 |  23.3 |
+|    -9 |  24.0 |
+|    -8 |  24.7 |
+|    -7 |  25.4 |
+|    -6 |  26.2 |
+|    -5 |  27.0 |
+|    -4 |  27.7 |
+|    -3 |  28.5 |
+|    -2 |  29.3 |
+|    -1 |  30.0 |
+|     0 |  30.8 |
+|     1 |  31.5 |
+|     2 |  32.3 |
+|     3 |  33.0 |
+|     4 |  33.8 |
+|     5 |  34.6 |
+|     6 |  35.4 |
+|     7 |  36.1 |
+|     8 |  36.9 |
+|     9 |  37.7 |
+|    10 |  38.5 |
+|    11 |  39.3 |
+|    12 |  40.1 |
+|    13 |  40.9 |
+|    14 |  41.6 |
+|    15 |  42.5 |
+|    16 |  43.5 |
+|    17 |  44.1 |
+|    18 |  44.6 |
+|    19 |  45.0 |
+|    20 |  45.0 |
+
+Generated by `generate-dealer-blackjack-probabilities.jl`

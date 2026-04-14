@@ -1,20 +1,19 @@
 # generate-card-density-by-count.jl
 #
-println(
-"""
+println("""
 Computes the average density of each card for each count after each card is dealt up to the deck penetration
-limit. Results are written to the file `data/cardDensitiesByCount.json`. A summary is written to the console.
-"""
-)
-
-using JSON
-#using Plots
-#gr() # Use the GR backend for plotting
-using DataFrames
+limit. Results are written to the file `data/card-densities-by-count.json`. A summary is written to the console.
+""")
 
 using Blackjack
+using DataFrames
+using JSON
+using PrettyTables
 
-const NUMBER_OF_SHOES = 10_000_000
+
+const NUMBER_OF_SHOES = 1_000_000
+const NUMBER_OF_SHOES_STR = commafy(NUMBER_OF_SHOES)
+
 configuration = Blackjack.DEFAULT_CONFIGURATION
 
 const COUNT_RANGE = COUNT_RANGE_PER_DECK * configuration.DECKS_PER_SHOE
@@ -25,16 +24,19 @@ const NUMBER_OF_CARDS_DEALT = floor((configuration.DECKS_PER_SHOE - configuratio
 println("Rules in use:")
 println(Blackjack.Rules.deconstruct(configuration.RULES))
 
-# Sums the densities of low, high, and uncounted cards.
+# Sums the densities of low, high, and neutral cards.
 function densities_by_type(f::Vector{Float64})
     low = sum(f[c] for c in LOW_CARDS)
-    uncounted = sum(f[c] for c in UNCOUNTED_CARDS)
+    neutral = sum(f[c] for c in NEUTRAL_CARDS)
     high = sum(f[c] for c in HIGH_CARDS)
-    return (low, uncounted, high)
+    return (low, neutral, high)
 end
 
-# Returns the index of the count in the count frequencies array.
+# Maps a signed count value to a 1-based array index
 count_index(c) = c + COUNT_RANGE + 1
+
+# Convert a value to a percentage for display.
+to_percent(x, digits = 0) = round(x * 100, digits=digits)
 
 # For a huge number of rounds:
 #   1. Shuffle the shoe.
@@ -50,7 +52,7 @@ count_frequencies = zeros(Int64, NUMBER_OF_COUNT_VALUES)
 # The shoe
 shoe = Blackjack.Shoes.Shoe(configuration.DECKS_PER_SHOE, configuration.PENETRATION)
 
-println("Simulating $NUMBER_OF_SHOES shoes...")
+println("Simulating $NUMBER_OF_SHOES_STR shoes...")
 for s in 1:NUMBER_OF_SHOES
     Blackjack.Shoes.shuffle!(shoe)
 
@@ -77,9 +79,10 @@ for s in 1:NUMBER_OF_SHOES
     end
 
     if s % (NUMBER_OF_SHOES ÷ 10) == 0
-        println("$(round(s / NUMBER_OF_SHOES * 100))% of $NUMBER_OF_SHOES shoes.")
+        println("$(round(s / NUMBER_OF_SHOES * 100))% of $NUMBER_OF_SHOES_STR shoes.")
     end
 end
+println()
 
 # Compute the average density of each card for each count.
 for i in 1:NUMBER_OF_COUNT_VALUES
@@ -95,31 +98,33 @@ end
 struct Output
     number_of_shoes::Int64
     configuration::Blackjack.Configuration
-    card_densities_by_count
+    card_densities_by_count::Matrix{Float64}
 end
 
-output = Output(NUMBER_OF_SHOES, configuration, card_densities_by_count)
-open("data/cardDensitiesByCount.json", "w") do io
-    JSON.print(io, output)
+open("data/card-densities-by-count.json", "w") do io
+    JSON.print(io, Output(NUMBER_OF_SHOES, configuration, card_densities_by_count))
+    println("Wrote data to data/card-densities-by-count.json")
+    println()
 end
 
 # Summarize card density by count
-counts = collect(-20:20)
-table = []
+counts, lows, neutrals, highs = Int[], Float64[], Float64[], Float64[]
 for c in -20:20
     i = count_index(c)
-    low, uncounted, high = densities_by_type(card_densities_by_count[i, :])
-    push!(table, Dict(
-        "Count" => c,
-        "Low (%)" => round(low * 100, digits=1),
-        "Uncounted (%)" => round(uncounted * 100, digits=1),
-        "High (%)" => round(high * 100, digits=1)
-    ))
+    low, neutral, high = densities_by_type(card_densities_by_count[i, :])
+    push!(counts, c)
+    push!(lows, to_percent(low, 1))
+    push!(neutrals, to_percent(neutral, 1))
+    push!(highs, to_percent(high, 1))
 end
 
+df = DataFrame(
+    "Count"        => counts,
+    "Low (%)"      => lows,
+    "Neutral (%)"  => neutrals,
+    "High (%)"     => highs
+)
 
-# Convert the array of dictionaries to a DataFrame
-df = DataFrame(table)
-
-# Display the DataFrame
-println(df)
+println("Card density by count:")
+println("After dealing $(configuration.DECKS_PER_SHOE - configuration.PENETRATION) decks from a $(configuration.DECKS_PER_SHOE)-deck shoe for $NUMBER_OF_SHOES_STR shoes.")
+pretty_table(df; backend = :markdown, column_labels = names(df))

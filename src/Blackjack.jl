@@ -3,8 +3,9 @@
 
 module Blackjack
 
-export COUNT_RANGE_PER_DECK, BUST, LOW_CARDS, UNCOUNTED_CARDS, HIGH_CARDS
+export COUNT_RANGE_PER_DECK, BUST, LOW_CARDS, NEUTRAL_CARDS, HIGH_CARDS
 export NUMBER_OF_SUITS, NUMBER_OF_CARDS_PER_SUIT, DECK_SIZE, ACE, JACK, QUEEN, KING
+export commafy
 
 include("Cards.jl")
 using .Cards
@@ -14,6 +15,8 @@ include("HiLo.jl")
 using .HiLo
 include("Shoes.jl")
 using .Shoes
+include("Commafy.jl")
+using .Commafy
 
 """
     BUST
