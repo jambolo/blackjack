@@ -1,7 +1,7 @@
 # generate-dealer-blackjack-probabilities.jl
 #
 println("""
-Computes the probability of a dealer blackjack by count from `data/card-densities-by-count.json`.
+Computes the probability of a dealer showing an ace having a blackjack by count from `data/card-densities-by-count.json`.
 Results are written to `data/dealer-blackjack-probabilities-by-count.json`. A summary is written to the console.
 """)
 

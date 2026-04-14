@@ -39,7 +39,7 @@ mutable struct Shoe
     running_count::Int
 
     function Shoe(decks::Int, penetration::Float64)
-        cards = repeat(1:13, decks * NUMBER_OF_SUITS)
+        cards = repeat(1:DECK_SIZE, decks)
         Random.shuffle!(cards)
         limit = ceil(Int, (decks - penetration) * DECK_SIZE)
         return new(cards, limit, 1, 0)
@@ -78,7 +78,7 @@ Deals the next card from the shoe, updating the running count.
 function deal!(shoe::Shoe)
     card = shoe.cards[shoe.index]
     shoe.index += 1
-    shoe.running_count += HiLo.value(card)
+    shoe.running_count += HiLo.value(Rules.rank(card))
     return card
 end
 
@@ -93,7 +93,7 @@ Deals the next card from the shoe, returning the value of the card instead of th
 ### Returns
 - The value of the card dealt (Jack through King have a value of 10).
 """
-deal_value!(shoe::Shoe) = Rules.value(deal!(shoe))
+deal_value!(shoe::Shoe) = Rules.value(Rules.rank(deal!(shoe)))
 
 # 
 """
@@ -140,7 +140,7 @@ done(shoe::Shoe) = shoe.index > shoe.limit
 ### Returns
 - The running count after the first i cards.
 """
-running_count_after(shoe::Shoe, i) = sum(HiLo.value(shoe.cards[j]) for j in 1:i)
+running_count_after(shoe::Shoe, i) = sum(HiLo.value(Rules.rank(shoe.cards[j])) for j in 1:i)
 
 """
     true_count_after(shoe::Shoe, i)

@@ -63,7 +63,7 @@ for s in 1:NUMBER_OF_SHOES
     # card in the remaining_cards shoe.
     while !Blackjack.Shoes.done(shoe)
         # Deal the next card.
-        card = Blackjack.Shoes.deal!(shoe)
+        card = Blackjack.Rules.rank(Blackjack.Shoes.deal!(shoe))
         true_count = round(Int, Blackjack.Shoes.true_count(shoe))
         i = count_index(true_count)
 

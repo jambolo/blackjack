@@ -54,6 +54,28 @@ function deconstruct(rules::RuleSet)
 end
 
 """
+    rank(card::Int)
+
+### Arguments
+- `card::Int`: A card represented as an integer in the range 1:52.
+
+### Returns
+- An integer representing the rank of the card in the range ACE:KING (1:13).
+"""
+rank(card::Int) = (card - 1) % NUMBER_OF_CARDS_PER_SUIT + 1
+
+"""
+    suit(card::Int)
+
+### Arguments
+- `card::Int`: A card represented as an integer in the range 1:52.
+
+### Returns
+- An integer representing the suit of the card in the range 1:4.
+"""
+suit(card::Int) = (card - 1) ÷ NUMBER_OF_CARDS_PER_SUIT + 1
+
+"""
     value(card::Int)
 
 ### Arguments

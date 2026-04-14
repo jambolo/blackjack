@@ -15,14 +15,16 @@ const NUMBER_OF_SHOES_STR = commafy(NUMBER_OF_SHOES)
 
 configuration = Blackjack.DEFAULT_CONFIGURATION
 
-const COUNT_RANGE = COUNT_RANGE_PER_DECK * configuration.DECKS_PER_SHOE
-const TOTAL_COUNTS = COUNT_RANGE * 2 + 1
+const COUNT_RANGE = COUNT_RANGE_PER_DECK * configuration.DECKS_PER_SHOE # The maximum -/+ range of possible counts
+const TOTAL_COUNTS = COUNT_RANGE * 2 + 1 # The total number of counts
+
 const HIGHEST_POSSIBLE_SCORE = BUST
 
 # Print the rules that are in use.
 println("Rules in use:")
 println(Blackjack.Rules.deconstruct(configuration.RULES))
 
+# Convert a value to a percentage for display.
 to_percent(x, digits = 0) = round(x * 100, digits=digits)
 
 println("Simulating $NUMBER_OF_SHOES_STR shoes...")
@@ -35,10 +37,12 @@ for s in 1:NUMBER_OF_SHOES
 
     while !Blackjack.Shoes.done(shoe)
         true_count = clamp(round(Int, Blackjack.Shoes.true_count(shoe)), -COUNT_RANGE, COUNT_RANGE)
-        hand = [Blackjack.Shoes.deal!(shoe), Blackjack.Shoes.deal!(shoe)]
-        under   = Blackjack.Rules.value(hand[1])
-        showing = Blackjack.Rules.value(hand[2])
+        hand = [Blackjack.Rules.rank(Blackjack.Shoes.deal!(shoe)), Blackjack.Rules.rank(Blackjack.Shoes.deal!(shoe))]
+        under   = Blackjack.Rules.value(hand[1]) # Value of the dealer's hidden card
+        showing = Blackjack.Rules.value(hand[2]) # Value of the dealer's showing card
 
+        # If rules.dealerChecksForBlackjack is true, then the case of a blackjack is not counted in the outcomes
+        # because the round ends immediately before the player can make any kind of decision.
         if configuration.RULES.DEALER_CHECKS_FOR_BLACKJACK
             if (under == ACE && showing == 10) || (under == 10 && showing == ACE)
                 continue
@@ -46,7 +50,7 @@ for s in 1:NUMBER_OF_SHOES
         end
 
         while Blackjack.Rules.dealer_must_hit(hand, configuration.RULES)
-            push!(hand, Blackjack.Shoes.deal!(shoe))
+            push!(hand, Blackjack.Rules.rank(Blackjack.Shoes.deal!(shoe)))
         end
 
         _, score = Blackjack.Rules.value(hand)
@@ -59,6 +63,7 @@ for s in 1:NUMBER_OF_SHOES
 end
 println()
 
+# Calculate the distribution
 showing_totals = [sum(outcomes[c, i, j] for c in -COUNT_RANGE:COUNT_RANGE, j in 1:HIGHEST_POSSIBLE_SCORE) for i in 1:10]
 aggregated_distribution = [
     showing_totals[i] > 0 ? sum(outcomes[c, i, j] for c in -COUNT_RANGE:COUNT_RANGE) / Float64(showing_totals[i]) : 0.0
