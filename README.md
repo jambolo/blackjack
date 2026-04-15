@@ -1,6 +1,10 @@
-# BlackJack Analysis
+# Blackjack
 
-Tools for the analysis of BlackJack, written in Julia.
+Tools for the analysis of Blackjack, written in Julia.
+
+![CI](https://github.com/jambolo/blackjack/actions/workflows/CI.yml/badge.svg)
+[![codecov](https://codecov.io/gh/jambolo/blackjack/branch/master/graph/badge.svg)](https://codecov.io/gh/jambolo/blackjack)
+[![Julia](https://img.shields.io/badge/julia-%3E%3D1.10-blue)](https://julialang.org)
 
 ## Executables
 
