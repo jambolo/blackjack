@@ -247,6 +247,79 @@ end
     end
 end
 
+# ── Strategy ──────────────────────────────────────────────────────────────────
+
+@testset "Strategy" begin
+    data_dir = joinpath(@__DIR__, "..", "data")
+    h17_ns = Blackjack.Strategy.load_table(joinpath(data_dir, "H17-DAS-NS.json"))
+    s17_ls = Blackjack.Strategy.load_table(joinpath(data_dir, "S17-DAS-LS.json"))
+
+    @testset "table_for selects by rules" begin
+        h17_ns_rules = Blackjack.Rules.RuleSet(true,  true, true, false, false, false, 4, 1.5)
+        s17_ls_rules = Blackjack.Rules.RuleSet(false, true, true, false, false, true,  4, 1.5)
+
+        t = Blackjack.Strategy.table_for(h17_ns_rules)
+        @test t["meta"]["dealer_stands_on_soft_17"] == false
+        @test t["meta"]["surrender_allowed"]        == false
+
+        t = Blackjack.Strategy.table_for(s17_ls_rules)
+        @test t["meta"]["dealer_stands_on_soft_17"] == true
+        @test t["meta"]["surrender_allowed"]        == true
+
+        # Works with the RuleSet instance held by the top-level module's Configuration
+        t = Blackjack.Strategy.table_for(Blackjack.DEFAULT_CONFIGURATION.RULES)
+        @test t["meta"]["dealer_stands_on_soft_17"] == false
+        @test t["meta"]["surrender_allowed"]        == false
+
+        # All tables assume double-after-split is allowed
+        no_das_rules = Blackjack.Rules.RuleSet(true, true, false, false, false, false, 4, 1.5)
+        @test_throws ArgumentError Blackjack.Strategy.table_for(no_das_rules)
+    end
+
+    @testset "pairs" begin
+        @test Blackjack.Strategy.player_action(h17_ns, [ACE, ACE], 6) == "P"
+        @test Blackjack.Strategy.player_action(h17_ns, [8, 8], 10)    == "P"
+        @test Blackjack.Strategy.player_action(h17_ns, [10, 10], 6)   == "S"
+        @test Blackjack.Strategy.player_action(h17_ns, [5, 5], 6)     == "Dh"
+        @test Blackjack.Strategy.player_action(h17_ns, [9, 9], 7)     == "S"
+        # Face cards collapse to 10: J,Q is a pair of 10s
+        @test Blackjack.Strategy.player_action(h17_ns, [JACK, QUEEN], 6) == "S"
+    end
+
+    @testset "soft hands" begin
+        @test Blackjack.Strategy.player_action(h17_ns, [ACE, KING], 10) == "S"  # blackjack (soft 21)
+        @test Blackjack.Strategy.player_action(h17_ns, [ACE, 7], 9)     == "H"  # soft 18
+        @test Blackjack.Strategy.player_action(h17_ns, [ACE, 2], 5)     == "Dh" # soft 13
+        # Soft 19 vs 6 differs by dealer soft-17 rule
+        @test Blackjack.Strategy.player_action(h17_ns, [ACE, 8], 6) == "Ds"
+        @test Blackjack.Strategy.player_action(s17_ls, [ACE, 8], 6) == "S"
+        # Multi-card soft hand: A,A,A is soft 13, not a pair
+        @test Blackjack.Strategy.player_action(h17_ns, [ACE, ACE, ACE], 5) == "Dh"
+    end
+
+    @testset "hard hands" begin
+        @test Blackjack.Strategy.player_action(h17_ns, [10, 6], 10)   == "H"
+        @test Blackjack.Strategy.player_action(s17_ls, [10, 6], 10)   == "Rh" # surrender allowed
+        @test Blackjack.Strategy.player_action(h17_ns, [6, 5], 6)     == "Dh" # hard 11
+        @test Blackjack.Strategy.player_action(h17_ns, [6, 5], ACE)   == "Dh" # hard 11 vs A (H17)
+        @test Blackjack.Strategy.player_action(s17_ls, [6, 5], ACE)   == "H"  # hard 11 vs A (S17)
+        @test Blackjack.Strategy.player_action(h17_ns, [10, 2], 2)    == "H"
+        @test Blackjack.Strategy.player_action(h17_ns, [10, 2], 4)    == "S"
+        @test Blackjack.Strategy.player_action(h17_ns, [2, 3], 2)     == "H"  # hard 5
+        @test Blackjack.Strategy.player_action(h17_ns, [10, 7, 3], ACE) == "S" # hard 20
+        # Ace counted as 1 when the soft total would bust: A,K,5 is hard 16
+        @test Blackjack.Strategy.player_action(h17_ns, [ACE, KING, 5], 10) == "H"
+    end
+
+    @testset "argument errors" begin
+        @test_throws ArgumentError Blackjack.Strategy.player_action(h17_ns, [10], 6)        # too few cards
+        @test_throws ArgumentError Blackjack.Strategy.player_action(h17_ns, [10, 14], 6)    # bad card
+        @test_throws ArgumentError Blackjack.Strategy.player_action(h17_ns, [10, 6], 0)     # bad upcard
+        @test_throws ArgumentError Blackjack.Strategy.player_action(h17_ns, [10, 6], 14)    # bad upcard
+        @test_throws ArgumentError Blackjack.Strategy.player_action(h17_ns, [10, 9, 5], 6)  # busted
+    end
+end
+
 # ── Commafy ───────────────────────────────────────────────────────────────────
 
 @testset "Commafy" begin

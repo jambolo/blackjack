@@ -30,13 +30,14 @@ julia --project=. -e 'using Pkg; Pkg.test()'
 
 ## Architecture
 
-The `Blackjack` package is one top-level module composed of five submodules. Leaf modules (`Cards`, `Commafy`) are `include`d independently by each module that needs them — this is safe because Julia resolves each `.Cards` / `.Commafy` reference within its own enclosing module.
+The `Blackjack` package is one top-level module composed of six submodules. Leaf modules (`Cards`, `Commafy`) are `include`d independently by each module that needs them — this is safe because Julia resolves each `.Cards` / `.Commafy` reference within its own enclosing module.
 
 - **[src/Blackjack.jl](src/Blackjack.jl)** — top-level module. Exposes `Configuration`, `DEFAULT_CONFIGURATION` (6 decks, 1.5-deck penetration, a standard H17/DAS rule set), and `BUST = 22` (arbitrary bust sentinel chosen to simplify array indexing). Re-exports `commafy` plus the card/count constants.
 - **[src/Cards.jl](src/Cards.jl)** — card constants. Cards are represented as `Int` values `1..13` where `1 = ACE`, `11 = JACK`, `12 = QUEEN`, `13 = KING`. `DECK_SIZE = 52`.
 - **[src/Rules.jl](src/Rules.jl)** — `RuleSet` struct, blackjack `value(card)` and `value(hand) → (soft, total)`, and `dealer_must_hit`. In this module `value` collapses J/Q/K to 10 and treats Ace as 1 or 11 depending on hand total.
 - **[src/HiLo.jl](src/HiLo.jl)** — Hi-Lo counting system. `LOW_CARDS = [2..6]` (+1), `NEUTRAL_CARDS = [7..9]` (0), `HIGH_CARDS = [ACE, 10, J, Q, K]` (−1). `value(card)` here returns the *count* value, not the blackjack value — be careful not to confuse with `Rules.value`.
 - **[src/Shoes.jl](src/Shoes.jl)** — mutable `Shoe` struct tracking cards, dealt index, penetration `limit`, and `running_count`. Core operations: `shuffle!`, `deal!`, `deal_value!`, `remaining`, `true_count`, `done`. `true_count` divides running count by *remaining decks* (remaining cards / 52).
+- **[src/Strategy.jl](src/Strategy.jl)** — basic-strategy lookup. Loads the hand-authored tables in `data/` (`load_table`, or `table_for` which selects the file from a `RuleSet`) and answers `player_action(table, hand, upcard) → action code` with pair → soft → hard resolution. `table_for` leaves `rules` untyped on purpose — each module's `include`d `Rules` is a distinct type.
 - **[src/Commafy.jl](src/Commafy.jl)** — single-function utility: `commafy(n)` formats an integer with comma thousands separators. Used by scripts when printing shoe counts.
 
 ### Scripts
@@ -76,7 +77,7 @@ Shared local helpers used across scripts (define inline, not in the library):
 `data/` contains two kinds of files — treat them differently:
 
 - **Generated** (regenerate by re-running the matching script in `scripts/`): `card-densities-by-count.json`, `count-probabilities.json`, `dealer-blackjack-probabilities-by-count.json`, `dealer-outcome-distribution.json`, `kings-bounty-analysis.json`, `next-card-outcome-distribution.json`, `true-count-distribution.json`.
-- **Hand-authored reference inputs** (no generator script — don't overwrite): the basic-strategy tables `H17-DAS-LS.json`, `H17-DAS-NS.json`, `S17-DAS-LS.json`, `S17-DAS-NS.json`. Their schema is documented in [README.md](README.md).
+- **Hand-authored reference inputs** (no generator script — don't overwrite): the basic-strategy tables `H17-DAS-LS.json`, `H17-DAS-NS.json`, `S17-DAS-LS.json`, `S17-DAS-NS.json`. Their schema is documented in [README.md](README.md). Loaded at runtime by [src/Strategy.jl](src/Strategy.jl).
 
 ## Related documentation
 

@@ -169,6 +169,9 @@ double-after-split always allowed):
 | `S17-DAS-LS.json` | Stands         | Late      |
 | `S17-DAS-NS.json` | Stands         | None      |
 
+The `Blackjack.Strategy` module loads these tables (`Strategy.table_for(rules)`) and looks up
+actions (`Strategy.player_action(table, hand, upcard)`).
+
 ```text
 meta.decks                             String  ("4-8")
 meta.style                             String  ("American")

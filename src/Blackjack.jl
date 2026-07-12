@@ -15,6 +15,8 @@ include("HiLo.jl")
 using .HiLo
 include("Shoes.jl")
 using .Shoes
+include("Strategy.jl")
+using .Strategy
 include("Commafy.jl")
 using .Commafy
 
