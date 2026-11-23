@@ -12,11 +12,11 @@ PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
-DataFrames = "1.7.0"
-JSON = "1.5.0"
-OffsetArrays = "1.14.1"
-Plots = "1.40.8"
-PrettyTables = "3.3.2"
+DataFrames = "1.8.3"
+JSON = "1.13.4"
+OffsetArrays = "1.18.0"
+Plots = "1.41.8"
+PrettyTables = "3.5.1"
 Random = "1.11.0"
 julia = "1.12"
 
